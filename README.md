@@ -8,7 +8,7 @@ Built with Next.js 14, React Three Fiber, GSAP and Lenis. The interface is a sin
 3D world: a shader-driven particle field and sculpted form that recede as you scroll from the
 hero into the content.
 
-> **Live site:** _added after the first deployment_
+> **Live site:** [saqlain-portfolio-zeta.vercel.app](https://saqlain-portfolio-zeta.vercel.app)
 
 ---
 

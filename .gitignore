@@ -30,3 +30,7 @@ Thumbs.db
 !.vscode/extensions.json
 *.pem
 *.tsbuildinfo
+
+# env templates stay tracked
+.env*
+!.env.example
