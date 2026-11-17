@@ -1,0 +1,278 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: initial; /* Lenis handles smoothness */
+}
+
+body {
+  @apply bg-ink text-bone font-body antialiased;
+  overflow-x: hidden;
+}
+
+/* Hide native cursor only on real pointer devices (CustomCursor takes over) */
+@media (hover: hover) and (pointer: fine) {
+  body,
+  a,
+  button,
+  input,
+  textarea,
+  [role="button"] {
+    cursor: none;
+  }
+}
+
+::selection {
+  background: #d9a951;
+  color: #0a0a0c;
+}
+
+/* Slim custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0c;
+}
+::-webkit-scrollbar-thumb {
+  background: #26262e;
+  border-radius: 8px;
+  border: 2px solid #0a0a0c;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d9a951;
+}
+
+/* Focus ring that matches the theme */
+:focus-visible {
+  outline: 1px solid #d9a951;
+  outline-offset: 3px;
+}
+
+@layer components {
+  /* film-grain overlay, fixed above everything, pointer-transparent */
+  .grain {
+    position: fixed;
+    inset: -50%;
+    z-index: 90;
+    pointer-events: none;
+    opacity: 0.055;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain-shift 0.9s steps(4) infinite;
+  }
+  @keyframes grain-shift {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-2%, 1.4%); }
+    50% { transform: translate(1.6%, -1%); }
+    75% { transform: translate(-1%, -1.8%); }
+    100% { transform: translate(0, 0); }
+  }
+
+  .section-label {
+    @apply font-body text-[11px] uppercase tracking-[0.35em] text-gold;
+  }
+
+  .chip {
+    @apply inline-block rounded-full border border-line px-3 py-1 text-[11px] uppercase tracking-widest text-mist;
+  }
+
+  .link-line {
+    position: relative;
+  }
+  .link-line::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.45s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  .link-line:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  .noise-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  /* hero scroll cue — a light segment "drips" down the line */
+  .scroll-cue {
+    position: relative;
+    width: 1px;
+    height: 56px;
+    background: #26262e;
+    overflow: hidden;
+  }
+  .scroll-cue::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #d9a951;
+    transform: translateY(-100%);
+    animation: cue-drop 1.9s cubic-bezier(0.76, 0, 0.24, 1) infinite;
+  }
+  @keyframes cue-drop {
+    0% { transform: translateY(-100%); }
+    55% { transform: translateY(0); }
+    100% { transform: translateY(100%); }
+  }
+
+  .field {
+    @apply w-full border-b border-line bg-transparent py-4 font-body text-lg text-bone placeholder:text-mist/50 focus:border-gold focus:outline-none transition-colors;
+  }
+}
+
+/* Lenis recommended styles — keep native fallback sane */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Custom cursor */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+}
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  background: #d9a951;
+  transition: opacity 0.24s ease;
+}
+.cursor-ring {
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(217, 169, 81, 0.55);
+  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.3s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease,
+    background 0.3s ease, opacity 0.28s ease;
+}
+.cursor-ring.is-active {
+  width: 76px;
+  height: 76px;
+  background: rgba(217, 169, 81, 0.08);
+  border-color: rgba(217, 169, 81, 0.9);
+}
+/* the lens takes over from the ring while reading text */
+.cursor-dot.is-dim,
+.cursor-ring.is-lens {
+  opacity: 0;
+}
+
+/* Optical text lens — magnified copy of the block under the pointer.
+   Sharp core, soft radial falloff, faint glass rim. */
+.cursor-lens {
+  --lens-size: 112px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: var(--lens-size);
+  height: var(--lens-size);
+  pointer-events: none;
+  border-radius: 50%;
+  transform: translate3d(-400px, -400px, 0) translate(-50%, -50%);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cursor-lens__glass {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  /* the fill hides the page's own text so it never doubles up with the
+     magnified copy; the light backdrop blur keeps a hint of the surface */
+  background: rgba(10, 10, 12, 0.84);
+  -webkit-backdrop-filter: blur(10px) saturate(0.9) brightness(0.62);
+  backdrop-filter: blur(10px) saturate(0.9) brightness(0.62);
+  box-shadow: inset 0 0 0 1px rgba(217, 169, 81, 0.6),
+    inset 0 0 24px rgba(10, 10, 12, 0.5), 0 10px 30px rgba(0, 0, 0, 0.42);
+}
+.cursor-lens.is-on .cursor-lens__glass {
+  opacity: 1;
+  transform: scale(1);
+}
+.cursor-lens__layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* the copy stays crisp to the rim — the circular clip and the gold edge do
+   the work a blurred band used to */
+.cursor-lens__layer--core {
+  -webkit-mask-image: radial-gradient(
+    circle closest-side,
+    #000 0 93%,
+    rgba(0, 0, 0, 0.9) 99%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle closest-side,
+    #000 0 93%,
+    rgba(0, 0, 0, 0.9) 99%,
+    transparent 100%
+  );
+}
+.cursor-lens__text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  border: 0;
+  list-style: none;
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+.cursor-lens__sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+      120% 100% at 30% 16%,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0) 46%
+    ),
+    radial-gradient(
+      circle closest-side,
+      rgba(10, 10, 12, 0) 62%,
+      rgba(10, 10, 12, 0.26) 100%
+    );
+}
+@media (prefers-reduced-motion: reduce) {
+  .cursor-lens__glass {
+    transition: opacity 0.2s ease;
+    transform: none;
+  }
+  .cursor-ring {
+    transition: opacity 0.2s ease;
+  }
+}
